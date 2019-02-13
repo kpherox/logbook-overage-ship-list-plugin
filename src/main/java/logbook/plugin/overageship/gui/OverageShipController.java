@@ -28,7 +28,7 @@ import logbook.internal.LoggerHolder;
 import logbook.internal.Ships;
 
 /**
- * お風呂に入りたい艦娘のコントローラー
+ * 改造可能な艦娘のコントローラー
  *
  */
 public class OverageShipController extends WindowController {
