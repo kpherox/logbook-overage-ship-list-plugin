@@ -1,16 +1,21 @@
 package logbook.plugin.overageship.gui;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.util.Duration;
 import logbook.bean.Ship;
 import logbook.bean.ShipCollection;
 import logbook.bean.ShipMst;
@@ -48,6 +53,10 @@ public class OverageShipController extends WindowController {
 
     private ObservableList<ShortageShipItem> item = FXCollections.observableArrayList();
 
+    private int overageShipHashCode;
+
+    private Timeline timeline;
+
     @FXML
     void initialize() {
         Tables.setVisible(this.table, this.getClass().toString() + "#" + "table");
@@ -63,7 +72,42 @@ public class OverageShipController extends WindowController {
 
         // 改装レベル不足の艦娘
         this.table.setItems(this.item);
-        this.overageShip();
+
+        this.timeline = new Timeline();
+        this.timeline.setCycleCount(Timeline.INDEFINITE);
+        this.timeline.getKeyFrames().add(new KeyFrame(
+                Duration.seconds(5),
+                this::update));
+        this.timeline.play();
+
+        this.update(null);
+    }
+
+    /**
+     * 画面の更新
+     *
+     * @param e ActionEvent
+     */
+    @FXML
+    void update(ActionEvent e) {
+        // 改装可能な艦娘の一覧を作る
+        List<ShortageShipItem> overageShips = ShipCollection.get()
+                .getShipMap()
+                .values()
+                .stream()
+                .map(ShortageShipItem::toShipItem)
+                .filter(item -> item.getAfterLv() != 0 && item.getAfterLv() <= item.getLv())
+                .sorted(Comparator.comparing(ShortageShipItem::getLv).reversed())
+                .collect(Collectors.toList());
+        int hashCode = overageShips.hashCode();
+
+        if (this.overageShipHashCode == hashCode) {
+            return;
+        }
+
+        this.item.clear();
+        this.item.addAll(overageShips);
+        this.overageShipHashCode = hashCode;
     }
 
     /**
@@ -114,19 +158,5 @@ public class OverageShipController extends WindowController {
                 this.setText(null);
             }
         }
-    }
-
-    /**
-     * 改装可能な艦娘の一覧を作る
-     */
-    private void overageShip() {
-        this.item.addAll(ShipCollection.get()
-                .getShipMap()
-                .values()
-                .stream()
-                .map(ShortageShipItem::toShipItem)
-                .filter(item -> item.getAfterLv() != 0 && item.getAfterLv() <= item.getLv())
-                .sorted(Comparator.comparing(ShortageShipItem::getLv).reversed())
-                .collect(Collectors.toList()));
     }
 }
