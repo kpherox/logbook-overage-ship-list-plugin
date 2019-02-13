@@ -12,6 +12,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
@@ -34,6 +35,10 @@ public class OverageShipController extends WindowController {
 
     @FXML
     private TableView<ShortageShipItem> table;
+
+    /** 行番号 */
+    @FXML
+    private TableColumn<ShortageShipItem, Integer> row;
 
     /** ID */
     @FXML
@@ -64,6 +69,21 @@ public class OverageShipController extends WindowController {
         Tables.setSortOrder(this.table, this.getClass().toString() + "#" + "table");
 
         // カラムとオブジェクトのバインド
+        this.row.setCellFactory(e -> {
+            TableCell<ShortageShipItem, Integer> cell = new TableCell<ShortageShipItem, Integer>() {
+                @Override
+                protected void updateItem(Integer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (!empty) {
+                        TableRow<?> currentRow = this.getTableRow();
+                        this.setText(Integer.toString(currentRow.getIndex() + 1));
+                    } else {
+                        this.setText(null);
+                    }
+                }
+            };
+            return cell;
+        });
         this.id.setCellValueFactory(new PropertyValueFactory<>("id"));
         this.ship.setCellValueFactory(new PropertyValueFactory<>("ship"));
         this.ship.setCellFactory(p -> new ShipImageCell());
